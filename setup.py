@@ -39,11 +39,6 @@ class snakeoil_build_py(snk_distutils.build_py):
             os.chmod(path, ((mode | 365) & 4095))
 
 
-class test(snk_distutils.test):
-
-    default_test_namespace = 'snakeoil.test'
-
-
 common_includes = [
     'include/snakeoil/heapdef.h',
     'include/snakeoil/common.h',
@@ -78,7 +73,6 @@ cmdclass = {
     'sdist': mysdist,
     'build_ext': snk_distutils.build_ext,
     'build_py': snakeoil_build_py,
-    'test': test,
 }
 
 command_options = {}
@@ -103,6 +97,7 @@ setup(
     ext_modules=extensions,
     cmdclass=cmdclass,
     command_options=command_options,
+    test_suite='tests',
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
