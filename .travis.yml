@@ -10,7 +10,7 @@ install:
     - pip install coverage coveralls pylint
     - python setup.py install --install-headers "${VIRTUAL_ENV}"/include/snakeoil
 script:
-    - coverage run --source build/lib*/snakeoil -m py.test tests
+    - coverage run --source build/lib*/snakeoil -m py.test build/lib*/tests
     - coverage report
 after_success:
     # upload coverage data to coveralls.io
