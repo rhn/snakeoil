@@ -75,16 +75,6 @@ cmdclass = {
     'build_py': snakeoil_build_py,
 }
 
-command_options = {}
-
-BuildDoc = snk_distutils.sphinx_build_docs()
-if BuildDoc:
-    cmdclass['build_docs'] = BuildDoc
-    command_options['build_docs'] = {
-        'version': ('setup.py', VERSION),
-        'source_dir': ('setup.py', 'doc'),
-    }
-
 setup(
     name='snakeoil',
     version=__version__,
@@ -96,7 +86,6 @@ setup(
     packages=find_packages(),
     ext_modules=extensions,
     cmdclass=cmdclass,
-    command_options=command_options,
     test_suite='tests',
     classifiers=[
         'Intended Audience :: Developers',
