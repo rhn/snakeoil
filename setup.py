@@ -83,7 +83,7 @@ setup(
     license='BSD',
     author='Brian Harring',
     author_email='ferringb@gmail.com',
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     ext_modules=extensions,
     cmdclass=cmdclass,
     test_suite='tests',
