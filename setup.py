@@ -4,9 +4,10 @@
 
 import os
 
-from distutils import core
+from setuptools import setup, find_packages
 
 from snakeoil import distutils_extensions as snk_distutils
+from snakeoil.version import __version__
 OptionalExtension = snk_distutils.OptionalExtension
 
 
@@ -43,12 +44,6 @@ class test(snk_distutils.test):
     default_test_namespace = 'snakeoil.test'
 
 
-packages = [
-    root.replace(os.path.sep, '.')
-    for root, dirs, files in os.walk('snakeoil')
-    if '__init__.py' in files
-]
-
 common_includes = [
     'include/snakeoil/heapdef.h',
     'include/snakeoil/common.h',
@@ -79,9 +74,6 @@ if not snk_distutils.is_py3k:
             'snakeoil.chksum._whirlpool_cdo', ['src/whirlpool_cdo.c'], **extra_kwargs),
         ])
 
-from snakeoil.version import __version__ as VERSION
-name = 'snakeoil'
-url = 'https://github.com/pkgcore/snakeoil'
 cmdclass = {
     'sdist': mysdist,
     'build_ext': snk_distutils.build_ext,
@@ -99,17 +91,16 @@ if BuildDoc:
         'source_dir': ('setup.py', 'doc'),
     }
 
-core.setup(
-    name=name,
-    version=VERSION,
+setup(
+    name='snakeoil',
+    version=__version__,
     description='misc common functionality, and useful optimizations',
-    url=url,
+    url='https://github.com/pkgcore/snakeoil',
     license='BSD',
     author='Brian Harring',
     author_email='ferringb@gmail.com',
-    packages=packages,
+    packages=find_packages(),
     ext_modules=extensions,
-    headers=common_includes,
     cmdclass=cmdclass,
     command_options=command_options,
     classifiers=[
