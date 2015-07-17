@@ -102,7 +102,6 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
     try:
         st = os.stat(path)
     except OSError:
-        base = os.path.sep
         try:
             um = os.umask(0)
             # if the dir perms would lack +wx, we have to force it
@@ -110,26 +109,39 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             resets = []
             apath = normpath(os.path.abspath(path))
             sticky_parent = False
-
+            base = os.path.sep # XXX: wonky way to get filesystem root...
+            
+            prev_path = None
+            prev_mode = None
             for directory in apath.split(os.path.sep):
                 base = join(base, directory)
                 try:
                     st = os.stat(base)
                     if not stat.S_ISDIR(st.st_mode):
                         return False
-
-                    # if it's a subdir, we need +wx at least
+                    prev_mode = st.st_mode
+                    
+                    # if it's a subdir, we need +x at least
                     if apath != base:
                         if (st.st_mode & 0o300) != 0o300:
+                            '''
                             try:
                                 os.chmod(base, (st.st_mode | 0o300))
                             except OSError:
                                 return False
                             resets.append((base, st.st_mode))
+                        '''
                         sticky_parent = (st.st_gid & stat.S_ISGID)
 
                 except OSError:
                     # nothing exists.
+                    if prev_mode & 0300 != 0300: # make sure parent allows for node creation
+                        try:
+                            os.chmod(prev_path, prev_mode | 0300)
+                            resets.append((prev_path, prev_mode))
+                        except OSError:
+                            return False
+
                     try:
                         if force_temp_perms:
                             if not _safe_mkdir(base, 0o700):
@@ -144,7 +156,8 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
                                 os.chown(base, uid, gid)
                     except OSError:
                         return False
-
+                prev_path = base
+                
             try:
                 for base, m in reversed(resets):
                     os.chmod(base, m)
