@@ -183,6 +183,45 @@ def ensure_dirs(path, gid=-1, uid=-1, mode=0o777, minimal=True):
             return False
     return True
 
+def silence_exc(f):
+    def fun(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except OSError:
+            return False
+    return fun
+
+@silence_exc # emulate old stupid behaviour
+def ensure_dirs(path, gid=-1, uid=-1, mode=0777, minimal=True):
+    # minimal only affects full dir from `path`
+    # if perms are wrong, user has to deal with it
+    def do_mkdir(p):
+        try:
+            os.mkdir(p, mode)
+        except OSError as e:
+            if e.errno != os.errno.ENOENT:
+                raise e
+            parent_p = os.path.dirname(p)
+            do_mkdir(parent_p)
+            os.mkdir(p)
+        if gid != -1 or uid != -1:
+            st = os.stat(p)
+            n_gid = -1 if st.st_gid == gid else gid
+            n_uid = -1 if st.st_uid == uid else uid
+            os.chown(p, n_uid, n_gid)
+
+    try:
+        st = os.stat(path)
+    except OSError as e:
+        if e.errno != os.errno.ENOENT:
+            raise e
+            
+        do_mkdir(path)
+        return True
+    else: # directory preexisting
+        if minimal and not st.st_mode & mode == mode:
+            os.chmod(path, st.st_mode | mode)
+        return stat.S_ISDIR(st.st_mode)
 
 def abssymlink(path):
     """
